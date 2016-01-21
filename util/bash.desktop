@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+[Desktop Entry]
+MimeType=application/x-shellscript;
+NoDisplay=true
+Name=Bash-Terminal
+Exec=bash %u
+Icon=utilities-terminal
+Terminal=true 
+X-KeepTerminal=true
+Type=Application

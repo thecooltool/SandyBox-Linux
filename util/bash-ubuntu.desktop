@@ -1,0 +1,9 @@
+[Desktop Entry]
+MimeType=application/x-shellscript;
+NoDisplay=true
+Name=Bash-Terminal
+Exec=gnome-terminal -e "bash %u"
+Icon=utilities-terminal
+Terminal=false
+Type=Application
+StartupNotify=true
