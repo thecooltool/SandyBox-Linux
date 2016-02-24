@@ -4,4 +4,4 @@ if [ ! "$BASH_VERSION" ] ; then
     exec /bin/bash "$0"
 fi
 cd "$(dirname "${BASH_SOURCE[0]}" )"
-sh ./util/machinekit-client/run.sh
+sh /media/coolcnc/SANDYBOX/Linux/util/machinekit-client/run.sh
