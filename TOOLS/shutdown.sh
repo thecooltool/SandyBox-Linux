@@ -4,7 +4,7 @@ if [ ! "$BASH_VERSION" ] ; then
     exec /bin/bash "$0"
 fi
 cd "$( dirname "${BASH_SOURCE[0]}" )"
-source util/init.sh
+source ../util/init.sh
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo "The Sandy-Box will now shutdown, please close all open files."
 echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
