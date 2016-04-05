@@ -4,6 +4,6 @@ if [ ! "$BASH_VERSION" ] ; then
     exec /bin/bash "$0"
 fi
 cd "$( dirname "${BASH_SOURCE[0]}" )"
-cd /media/coolcnc/SANDYBOX/System/update
+cd ../../System/update
 python update.py
 read -p "Press any key to exit..."
