@@ -4,32 +4,55 @@ import QtQuick.Layouts 1.1
 import QtQuick.Window 2.0
 
 Item {
-    property var launcher: {"name": "Test-config",
-                            "output": ["First line", "second line", "third line"]}
-    property string stdoutText: (launcher !== undefined) && (launcher.output !== undefined) ?
-                                    launcher.output.join("") : ""
-    property string launcherName: launcher != undefined ? launcher.name : ""
-    property string titleText: {
-        if (isRunning) {
-            return qsTr("Starting ") + launcherName + "..."
-        }
-        else if (hasError) {
-            return qsTr("Error starting ") + launcherName
-        }
-        else {
-            return launcherName + qsTr(" exited")
-        }
-    }
-    property var image: (launcher !== undefined) && (launcher.image !== undefined) ? launcher.image: undefined
-    property bool isRunning: (launcher !== undefined) && launcher.running
-    property bool hasError: (launcher !== undefined) && (!launcher.running) && (launcher.returncode !== 0)
-    property int returncode: (launcher !== undefined) ? launcher.returncode : 0
+    property var launcher: undefined
+    property var applicationLog: {"connected": false}
 
     signal goBack()
 
     id: root
     width: 600
     height: 500
+
+    QtObject {
+        id: d
+        readonly property string stdoutText: (launcher !== undefined) && (launcher.output !== undefined) ?
+                                        launcher.output.join("") : ""
+        readonly property string launcherName: (launcher !== undefined) ? launcher.name : ""
+        readonly property string titleText: {
+            if (isRunning) {
+                return qsTr("Starting %1...").arg(launcherName);
+            }
+            else if (hasError) {
+                return qsTr("Error starting %1").arg(launcherName);
+            }
+            else {
+                return qsTr("%1 exited").arg(launcherName);
+            }
+        }
+        readonly property var image: (launcher !== undefined) && (launcher.image !== undefined) ? launcher.image : undefined
+        readonly property bool isRunning: (launcher !== undefined) && launcher.running
+        readonly property bool hasError: (launcher !== undefined) && (!launcher.running) && (launcher.returncode !== 0)
+        readonly property int returncode: (launcher !== undefined) ? launcher.returncode : 0
+
+        property string logText: ""
+
+        function addLogEntry(message) {
+            logText += message.timestamp + " - [" + message.tag + "]: " + message.text + "\n";
+        }
+
+        function clearLog() {
+            logText = "";
+        }
+    }
+
+    /*! /internal
+        Cannot directly connect to slots since the file property is var and not a QObject.
+    */
+    onApplicationLogChanged: {
+        if (root.applicationLog.onMessageReceived) {
+            root.applicationLog.onMessageReceived.connect(d.addLogEntry)
+        }
+    }
 
     Label {
         id: dummyText
@@ -51,7 +74,7 @@ Item {
 
             Layout.fillWidth: true
             Layout.preferredHeight: Math.max(dummyButton.height, implicitHeight)
-            text: titleText
+            text: d.titleText
             font.pointSize: dummyText.font.pointSize * 1.3
             font.bold: true
             horizontalAlignment: Text.AlignHCenter
@@ -72,9 +95,10 @@ Item {
         Image {
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.preferredHeight: root.height * 0.6
             fillMode: Image.PreserveAspectFit
-            source: root.image !== undefined ? root.image.url : "qrc:Machinekit/Application/Controls/icons/machinekit"
-            visible: !hasError
+            source: d.image !== undefined ? d.image.url : "qrc:Machinekit/Application/Controls/icons/machinekit"
+            visible: !d.hasError
         }
 
         Label {
@@ -82,17 +106,34 @@ Item {
             font.pointSize: dummyText.font.pointSize * 1.2
             font.bold: true
             horizontalAlignment: Text.AlignHCenter
-            visible: hasError
+            visible: d.hasError
             wrapMode: Text.WordWrap
-            text: visible ? qsTr("Process exited with return code ") + returncode + qsTr(". See the log for details.") : ""
+            text: visible ? qsTr("Process exited with return code %1. See the log for details.").arg(d.returncode) : ""
         }
 
-        TextArea {
+        TabView {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            text: stdoutText
-            visible: true
-            readOnly: true
+
+            Tab {
+                active: true
+                title: qsTr("Application Output")
+                TextArea {
+                    id: stdoutTextArea
+                    text: d.stdoutText
+                    readOnly: true
+                }
+            }
+
+            Tab {
+                active: true
+                title: qsTr("Machinekit Log")
+                TextArea {
+                    id: logTextArea
+                    text: d.logText
+                    readOnly: true
+                }
+            }
         }
     }
 }

@@ -24,7 +24,6 @@ import QtQuick 2.0
 import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
 import QtQuick.Window 2.0
-import Machinekit.Controls 1.0
 
 /*!
     \qmltype ColorPicker
@@ -106,7 +105,7 @@ Item {
                 model: root.columns*root.rows
                 Rectangle {
                     width: root.cellSide; height: root.cellSide
-                    color: (index%2 == 0) ? "gray" : "white"
+                    color: (index % 2 === 0) ? "gray" : "white"
                 }
             }
         }
@@ -139,7 +138,7 @@ Item {
                 anchors.fill: parent
                 function handleMouse(mouse) {
                     if (mouse.buttons & Qt.LeftButton) {
-                        pickerCursor.y = Math.max(0, Math.min(height, mouse.y))
+                        pickerCursor.y = Math.max(0, Math.min(height, mouse.y));
                     }
                 }
                 onPositionChanged: handleMouse(mouse)

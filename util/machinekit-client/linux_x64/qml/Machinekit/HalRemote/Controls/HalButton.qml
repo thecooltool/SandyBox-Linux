@@ -23,7 +23,6 @@ import QtQuick 2.1
 import QtQuick.Controls 1.1
 import QtQuick.Window 2.0
 import Machinekit.HalRemote 1.0
-import Machinekit.HalRemote.Controls 1.0
 
 /*!
     \qmltype HalButton
@@ -57,7 +56,7 @@ Button {
 
     id: main
 
-    enabled: (pin.direction == HalPin.Out)
+    enabled: (pin.direction !== HalPin.In)
 
     HalPin {
         id: pin

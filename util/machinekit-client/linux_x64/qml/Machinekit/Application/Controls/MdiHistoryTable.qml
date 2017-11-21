@@ -46,7 +46,7 @@ TableView {
 
     Keys.onReturnPressed: {
         if (currentRow > -1) {
-            commandTriggered(model[currentRow].command)
+            commandTriggered(model[currentRow].command);
         }
     }
 
@@ -60,7 +60,7 @@ TableView {
         anchors.fill: parent
         acceptedButtons: Qt.RightButton
         onClicked: {
-            clearMenu.popup()
+            clearMenu.popup();
         }
     }
 
@@ -69,7 +69,7 @@ TableView {
         MenuItem { action: clearListAction }
         Action {
             id: clearListAction
-            text: qsTr("Clear list")
+            text: qsTr("Clear History")
             onTriggered: history.clear()
         }
     }

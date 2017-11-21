@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.1
+import Machinekit.Controls.Private 1.0
 
 Item {
     property alias color: mid.color
@@ -22,7 +23,7 @@ Item {
     property string prefix: ""
     property string suffix: ""
     property alias font: label.font
-    property real centerScale: needleType == "Groove" ? 0.8 : 0.66
+    property real centerScale: needleType === "Groove" ? 0.8 : 0.66
     property alias text: label.text
 
     id: root

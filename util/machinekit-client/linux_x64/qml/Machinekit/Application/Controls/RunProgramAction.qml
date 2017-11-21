@@ -29,20 +29,25 @@ ApplicationAction {
     property int programResetLine: 0
 
     property bool _ready: status.synced && command.connected
+    property bool _fileValid: status.synced
+                              && (status.task.file !== "")
+                              && (status.task.file.indexOf(status.config.remotePath) === 0)
 
     id: root
     text: qsTr("Run")
     iconSource: "qrc:Machinekit/Application/Controls/icons/go-next-view"
     shortcut: "R"
-    tooltip: qsTr("Begin executing current file") + " [" + shortcut + "]"
+    tooltip: qsTr("Begin executing current file [%1]").arg(shortcut)
     onTriggered: {
-        if (status.task.taskMode !== ApplicationStatus.TaskModeAuto)
-            command.setTaskMode('execute', ApplicationCommand.TaskModeAuto)
-        command.runProgram('execute', programStartLine)
-        programStartLine = programResetLine
+        if (status.task.taskMode !== ApplicationStatus.TaskModeAuto) {
+            command.setTaskMode('execute', ApplicationCommand.TaskModeAuto);
+        }
+        command.runProgram('execute', programStartLine);
+        programResetLine = programStartLine;
     }
     enabled: _ready
+             && _fileValid
              && (status.task.taskState === ApplicationStatus.TaskStateOn)
-             && (status.task.file !== "")
              && !status.running
+             && (status.motion.state !== ApplicationStatus.MotionExec)
 }

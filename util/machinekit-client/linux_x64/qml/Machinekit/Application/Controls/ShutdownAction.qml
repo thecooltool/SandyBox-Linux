@@ -31,9 +31,9 @@ ApplicationAction {
     text: qsTr("Sh&utdown")
     iconName: "system-shutdown"
     iconSource: "qrc:Machinekit/Application/Controls/icons/system-shutdown"
-    tooltip: qsTr("Shutdown Machinekit instance") + " [" + shortcut + "]"
+    tooltip: qsTr("Shutdown Machinekit instance [%1]").arg(shortcut)
     onTriggered: {
-        command.shutdown()
+        command.shutdown();
     }
     enabled: _ready
 }

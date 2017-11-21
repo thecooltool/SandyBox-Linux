@@ -21,7 +21,6 @@
 ****************************************************************************/
 import QtQuick 2.0
 import QtQuick.Controls 1.0
-import Machinekit.Controls 1.0
 
 Rectangle {
     id: main
@@ -34,7 +33,7 @@ Rectangle {
     property double lowTempValue: 0
     property double highTempValue: 200
     property double criticalTempValue: 300
-    property string title: qsTr("Title")
+    property string title: "Title"
     property double tempRange: maximumValue - minimumValue
 
     width: 70

@@ -5,5 +5,5 @@ if [ ! "$BASH_VERSION" ] ; then
 fi
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 cd ../../System/update
-python update.py
+python3 update.py
 read -p "Press any key to exit..."

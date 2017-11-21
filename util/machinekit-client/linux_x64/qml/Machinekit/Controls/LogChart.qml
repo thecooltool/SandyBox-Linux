@@ -20,7 +20,6 @@
 **
 ****************************************************************************/
 import QtQuick 2.0
-import Machinekit.Controls 1.0
 
 /*!
     \qmltype LogChart
@@ -99,14 +98,14 @@ ValueChart {
     */
     function addData(value)
     {
-        valueModel.addData(value)
+        valueModel.addData(value);
     }
 
     /*! Clears all data in the chart.
     */
     function clearData()
     {
-        valueModel.clearData()
+        valueModel.clearData();
     }
 
     id: chart
@@ -123,10 +122,10 @@ ValueChart {
         id: sampleTimer
 
         interval: 10
-        running: true
+        running: chart.enabled
         repeat: true
         onTriggered: {
-            valueModel.addData(value)
+            valueModel.addData(value);
         }
     }
 
@@ -134,10 +133,10 @@ ValueChart {
         id: updateTimer
 
         interval: 100
-        running: true
+        running: chart.enabled && chart.visible
         repeat: true
         onTriggered: {
-            chart.update()
+            chart.update();
         }
     }
 }

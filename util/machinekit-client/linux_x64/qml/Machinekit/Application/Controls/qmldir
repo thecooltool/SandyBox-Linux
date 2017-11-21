@@ -4,6 +4,14 @@ classname MachinekitApplicationControlsPlugin
 typeinfo plugins.qmltypes
 designersupported
 
+depends QtQuick.Controls 1.2
+depends QtQuick.Dialogs 1.2
+depends QtQuick.Layouts 1.1
+depends Machinekit.Controls 1.0
+depends Machinekit.Service 1.0
+depends Machinekit.Application 1.0
+depends Machinekit.Application.Controls.Private 1.0
+
 # Workaround: inform Qt Creator about QML files
 # typeinfo plugins.qmltypes does not work
 ConnectionWindow 1.0 ConnectionWindow.qml
@@ -20,6 +28,7 @@ ApplicationNotifications 1.0 ApplicationNotifications.qml
 ApplicationProgressBar 1.0 ApplicationProgressBar.qml
 ApplicationFileDialog 1.0 ApplicationFileDialog.qml
 JogStick 1.0 JogStick.qml
+AbstractDigitalReadOut 1.0 AbstractDigitalReadOut.qml
 DigitalReadOut 1.0 DigitalReadOut.qml
 FeedrateSlider 1.0 FeedrateSlider.qml
 FeedrateHandler 1.0 FeedrateHandler.qml
@@ -56,3 +65,14 @@ UserCommandAction 1.0 UserCommandAction.qml
 ApplicationRemoteFileDialog 1.0 ApplicationRemoteFileDialog.qml
 OverrideLimitsAction 1.0 OverrideLimitsAction.qml
 OptionalStopAction 1.0 OptionalStopAction.qml
+BlockDeleteAction 1.0 BlockDeleteAction.qml
+FeedHoldAction 1.0 FeedHoldAction.qml
+FeedOverrideAction 1.0 FeedOverrideAction.qml
+SpindleOverrideAction 1.0 SpindleOverrideAction.qml
+EstopPowerAction 1.0 EstopPowerAction.qml
+RapidrateHandler 1.0 RapidrateHandler.qml
+RapidrateSlider 1.0 RapidrateSlider.qml
+EditWithSystemEditorAction 1.0 EditWithSystemEditorAction.qml
+ToolTableEditor 1.0 ToolTableEditor.qml
+ToolTableEditorDialog 1.0 ToolTableEditorDialog.qml
+EditToolTableAction 1.0 EditToolTableAction.qml

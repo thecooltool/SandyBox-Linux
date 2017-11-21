@@ -176,11 +176,11 @@ Rectangle {
 
     /*! This property holds the title of the window displayed if no application is loaded.
     */
-    property string defaultTitle: qsTr("Machinekit")
+    property string defaultTitle: "Machinekit"
 
     /*! This property holds the list of local applications.
     */
-    property list<ApplicationDescription> applications
+    default property list<ApplicationDescription> applications
 
     /*!
         \qmlproperty Item toolBar
@@ -218,203 +218,246 @@ Rectangle {
     /*! \internal */
     function selectInstance(uuid)
     {
-        if (!(remoteVisible || localVisible))
-            return
+        if (!(remoteVisible || localVisible)) {
+            return;
+        }
 
         if (uuid !== "")
         {
-            serviceDiscoveryFilter.txtRecords = ["uuid=" + uuid]
-            serviceDiscovery.updateFilter()
-            d.instanceSelected = true
+            serviceDiscoveryFilter.txtRecords = ["uuid=" + uuid];
+            serviceDiscovery.updateFilter();
+            d.instanceSelected = true;
         }
         else
         {
-            console.log("selecting instance failed: check uri and uuid")
-            setError(qsTr("Instance Error:"), qsTr("Check uri and uuid"))
+            console.log("selecting instance failed: check uri and uuid");
+            setError(qsTr("Instance Error:"), qsTr("Check uri and uuid"));
         }
     }
 
     /*! \internal */
     function selectLauncher(index)
     {
-        var x = d //goes away
-        x.freshStart = false // not fresh anymore
-        x.holdLauncher = false // we have started a new instance so we don't hold back
+        var x = d; //goes away
+        x.freshStart = false; // not fresh anymore
+        x.holdLauncher = false; // we have started a new instance so we don't hold back
     }
 
     /*! \internal */
     function selectApplication(index)
     {
-        if (mode == "local")
-            d.applicationSource = applications[index].mainFile
-        else
-            applicationConfig.selectConfig(applicationConfig.configs[index].name)
+        if (mode === "local") {
+            var application = applications[index];
+            applicationTranslator.localName = application.name;
+                        applicationTranslator.localPath = application.translationsPath;
+            d.applicationSource = application.mainFile;
+        }
+        else {
+            applicationConfig.selectConfig(applicationConfig.configs[index].name);
+        }
     }
 
     /*! \internal */
-    function goBack()
+    function goBack(shutdown)
     {
-        if (mainWindow.state == "instance")
+        if (mainWindow.state === "instance")
         {
-            Qt.quit()
+            Qt.quit();
         }
-        else if (mainWindow.state == "launcher")
+        else if (mainWindow.state === "launcher")
         {
-            if (autoSelectInstance == false)
+            if (autoSelectInstance === false)
             {
-                serviceDiscoveryFilter.txtRecords = []
-                serviceDiscovery.updateFilter()
-                d.instanceSelected = false
+                serviceDiscoveryFilter.txtRecords = [];
+                serviceDiscovery.updateFilter();
+                d.instanceSelected = false;
             }
             else
             {
-                Qt.quit()
+                Qt.quit();
             }
         }
-        else if ((mainWindow.state == "config") || (mainWindow.state == "launcher-selected"))
+        else if ((mainWindow.state === "config") || (mainWindow.state === "launcher-selected"))
         {
-            d.holdLauncher = true
+            d.holdLauncher = true;
         }
-        else if ((mainWindow.state == "app-loaded") || (mainWindow.state == "app-loading"))
+        else if ((mainWindow.state === "app-loaded") || (mainWindow.state === "app-loading"))
         {
-            if ((autoSelectApplication) && (autoSelectInstance))
-                Qt.quit()
+            if ((autoSelectApplication) && (autoSelectInstance)) {
+                Qt.quit();
+            }
 
-            if (d.applicationSource == "")    // remote application
-                applicationConfig.unselectConfig()
-            else
-                d.applicationSource = ""
+            if (d.applicationSource === "") {   // remote application
+                applicationConfig.unselectConfig();
+            }
+            else {
+                d.applicationSource = "";
+            }
 
-            applicationServiceList.services = []
-            serviceDiscovery.updateServices()
+            applicationServiceList.services = [];
+            serviceDiscovery.updateServices();
 
-            if (autoSelectApplication)  // go back to discovery page
+            if (autoSelectApplication || shutdown) {
+                d.holdLauncher = true;
+            }
+
+            if (autoSelectInstance)  // go back to discovery page
             {
-                serviceDiscoveryFilter.txtRecords = []
-                serviceDiscovery.updateFilter()
-                d.instanceSelected = false
+                serviceDiscoveryFilter.txtRecords = [];
+                serviceDiscovery.updateFilter();
+                d.instanceSelected = false;
             }
         }
-        else if (mainWindow.state == "error")
+        else if (mainWindow.state === "error")
         {
-            clearError()
-            goBack()
+            clearError();
+            goBack();
         }
     }
+
+    /*! \internal */
+    function _evaluateState() {
+        if (d.errorActive) {
+            return "error";
+        }
+        else if (appPage.status === Loader.Ready) {
+            return "app-loaded";
+        }
+        else if (applicationConfig.selectedConfig.loading
+                 || (appPage.active && (appPage.status === Loader.Loading)))
+        {
+            return "app-loading";
+        }
+        else if (d.instanceSelected)
+        {
+            if (configService.ready && !d.holdLauncher) {
+                return "config";
+            }
+            else if (d.holdLauncher || d.freshStart) {
+                return "launcher";
+            }
+            else {
+                return "launcher-selected";
+            }
+        }
+        else {
+            return "instance";
+        }
+        }
 
     /*! \internal */
     function setError(errorType, errorText)
     {
-        d.errorType = errorType
-        d.errorText = errorText
-        d.errorActive = true
+        d.errorType = errorType;
+        d.errorText = errorText;
+        d.errorActive = true;
     }
 
     /*! \internal */
     function clearError()
     {
-        d.errorActive = false
+        d.errorActive = false;
     }
 
     /*! \internal */
     function loadSettings() {
-        var manualConfig = false
+        var manualConfig = false;
         if (configurationFilePath !== "") {
-            sdSettings.filePath = configurationFilePath
-            manualConfig = true
+            sdSettings.filePath = configurationFilePath;
+            manualConfig = true;
         }
         else if (!autoSaveConfiguration) {
-            return
+            return;
         }
 
-        sdSettings.load()
-        sdSettings.setValue("nameServers", serviceDiscovery.nameServers, false)
-        sdSettings.setValue("lookupMode", serviceDiscovery.lookupMode, false)
-        sdSettings.setValue("mode", mode, false)
+        sdSettings.load();
+        sdSettings.setValue("nameServers", serviceDiscovery.nameServers, false);
+        sdSettings.setValue("lookupMode", serviceDiscovery.lookupMode, false);
+        sdSettings.setValue("mode", mode, false);
 
         // add stored name servers
-        var nameServers = sdSettings.values.nameServers
-        var currentNameServers = serviceDiscovery.nameServers
+        var nameServers = sdSettings.values.nameServers;
+        var currentNameServers = serviceDiscovery.nameServers;
         for (var i = 0; i < nameServers.length; ++i)
         {
-            var found = false
+            var found = false;
             for (var j = 0; j < currentNameServers.length; ++j)     // avoid duplicates
             {
                 if ((nameServers[i].hostName === currentNameServers[j].hostName)
                         && (nameServers[i].port === currentNameServers[j].port))
                 {
-                    found = true
-                    break
+                    found = true;
+                    break;
                 }
             }
 
             if (!found && (serviceDiscovery.nameServers.length < 3)) // limit to 3 name servers => TODO
             {
-                var nameServerObject = nameServerComponent.createObject(mainWindow, {})
-                nameServerObject.hostName = nameServers[i].hostName
-                nameServerObject.port = nameServers[i].port
-                serviceDiscovery.addNameServer(nameServerObject)
+                var nameServerObject = nameServerComponent.createObject(mainWindow, {});
+                nameServerObject.hostName = nameServers[i].hostName;
+                nameServerObject.port = nameServers[i].port;
+                serviceDiscovery.addNameServer(nameServerObject);
             }
         }
 
-        serviceDiscovery.lookupMode = sdSettings.values.lookupMode
+        serviceDiscovery.lookupMode = sdSettings.values.lookupMode;
         if (localVisible && !remoteVisible) {
-            mode = "local"
+            mode = "local";
         }
         else if (remoteVisible && !localVisible) {
-            mode = "remote"
+            mode = "remote";
         }
         else {
-            mode = sdSettings.values.mode
+            mode = sdSettings.values.mode;
         }
 
         if (manualConfig) {
-            sdSettings.setValue("autoSaveConfiguration", false, false)
-            sdSettings.setValue("autoSelectInstance", autoSelectInstance, false)
-            sdSettings.setValue("autoSelectApplication", autoSelectApplication, false)
-            sdSettings.setValue("instanceFilter", serviceDiscovery.filter, false)
-            sdSettings.setValue("applicationFilter", applicationConfig.filter, false)
+            sdSettings.setValue("autoSaveConfiguration", false, false);
+            sdSettings.setValue("autoSelectInstance", autoSelectInstance, false);
+            sdSettings.setValue("autoSelectApplication", autoSelectApplication, false);
+            sdSettings.setValue("instanceFilter", serviceDiscovery.filter, false);
+            sdSettings.setValue("applicationFilter", applicationConfig.filter, false);
 
-            autoSaveConfiguration = sdSettings.values.autoSaveConfiguration
-            autoSelectInstance = sdSettings.values.autoSelectInstance
-            autoSelectApplication = sdSettings.values.autoSelectApplication
+            autoSaveConfiguration = sdSettings.values.autoSaveConfiguration;
+            autoSelectInstance = sdSettings.values.autoSelectInstance;
+            autoSelectApplication = sdSettings.values.autoSelectApplication;
             for (var key in sdSettings.values.instanceFilter) {
-                serviceDiscovery.filter[key] = sdSettings.values.instanceFilter[key]
+                serviceDiscovery.filter[key] = sdSettings.values.instanceFilter[key];
             }
             for (key in sdSettings.values.applicationFilter) {
-                applicationConfig.filter[key] = sdSettings.values.applicationFilter[key]
+                applicationConfig.filter[key] = sdSettings.values.applicationFilter[key];
             }
         }
 
-        sdSettings.initialized = true
+        sdSettings.initialized = true;
     }
 
     /*! \internal */
     function saveSettings() {
         if (!sdSettings.initialized || !autoSaveConfiguration) {
-            return
+            return;
         }
 
-        var nameServerList = []
-        var nameServer
+        var nameServerList = [];
+        var nameServer;
 
         for (var i = 0; i < serviceDiscovery.nameServers.length; ++i) {
-            nameServer = {"hostName": "", "port": 0}
-            nameServer.hostName = serviceDiscovery.nameServers[i].hostName
-            nameServer.port = serviceDiscovery.nameServers[i].port
+            nameServer = { "hostName": "", "port": 0 };
+            nameServer.hostName = serviceDiscovery.nameServers[i].hostName;
+            nameServer.port = serviceDiscovery.nameServers[i].port;
             if (nameServer.hostName !== "") {
-                nameServerList.push(nameServer)
+                nameServerList.push(nameServer);
             }
         }
 
-        sdSettings.setValue("nameServers", nameServerList)
-        sdSettings.setValue("lookupMode", serviceDiscovery.lookupMode)
-        sdSettings.setValue("mode", mode)
-        sdSettings.save()
+        sdSettings.setValue("nameServers", nameServerList);
+        sdSettings.setValue("lookupMode", serviceDiscovery.lookupMode);
+        sdSettings.setValue("mode", mode);
+        sdSettings.save();
     }
 
     Component.onCompleted: {
-        loadSettings()
+        loadSettings();
     }
 
     onModeChanged: saveSettings()
@@ -428,10 +471,14 @@ Rectangle {
     Keys.onReleased: {
         if ((event.key === Qt.Key_Back) ||
                 (event.key === Qt.Key_Backspace)) {
-            if (!mainWindow.activeFocus)
+            if (!mainWindow.activeFocus) {
                 return;
-            goBack()
-            event.accepted = true
+            }
+            goBack();
+            event.accepted = true;
+        }
+        else {
+            event.accepted = false;
         }
     }
 
@@ -453,17 +500,12 @@ Rectangle {
         colorGroup: enabled ? SystemPalette.Active : SystemPalette.Disabled
     }
 
-    NetworkPage {
-        id: networkPage 
-        anchors.fill: parent
-    }
-
     InstancePage {
         id: instancePage
         anchors.fill: parent
 
         autoSelectInstance: mainWindow.autoSelectInstance
-        instances: d.instanceSelected ? [] : launcherService.items
+        instances: launcherService.items
         serviceDiscovery: serviceDiscovery
 
         onInstanceSelected: mainWindow.selectInstance(uuid)
@@ -479,6 +521,7 @@ Rectangle {
 
         onGoBack: mainWindow.goBack()
         onLauncherSelected: mainWindow.selectLauncher(index)
+        onSystemShutdown: applicationLauncher.shutdown()
     }
 
     SelectedPage {
@@ -487,6 +530,7 @@ Rectangle {
 
         launcher: (launcherPage.selectedLauncher < applicationLauncher.launchers.length) ?
                    applicationLauncher.launchers[launcherPage.selectedLauncher] : undefined
+        applicationLog: applicationLog
         onGoBack: mainWindow.goBack()
     }
 
@@ -516,10 +560,10 @@ Rectangle {
         applicationConfig: applicationConfig
         serviceDiscovery: serviceDiscovery
 
-        onGoBack: mainWindow.goBack()
+        onGoBack: mainWindow.goBack(shutdown)
         onServicesChanged: {
-            applicationServiceList.services = services
-            serviceDiscovery.updateServices()
+            applicationServiceList.services = services;
+            serviceDiscovery.updateServices();
         }
     }
 
@@ -549,9 +593,18 @@ Rectangle {
         onConnectionStateChanged: {
             if (applicationConfig.connectionState === ApplicationConfig.Error)
             {
-                setError(qsTr("Application Config Error:"), applicationConfig.errorString)
+                setError(qsTr("Application Config Error:"), applicationConfig.errorString);
             }
         }
+    }
+
+    ApplicationTranslator {
+        property string localName: ""
+        property string localPath: ""
+
+        id: applicationTranslator
+        applicationName: mainWindow.mode === "local" ? localName : applicationConfig.selectedConfig.name
+        translationsPath: mainWindow.mode === "local" ? localPath : applicationConfig.selectedConfig.translationsPath
     }
 
     ApplicationLauncher {
@@ -561,45 +614,52 @@ Rectangle {
         launcherUri: launcherService.uri
         launchercmdUri: launchercmdService.uri
         onConnectionStateChanged: {
-            if (applicationLauncher.connectionState === ApplicationLauncher.Error)
-            {
-                setError(qsTr("Application Launcher Error:"), applicationLauncher.errorString)
+            if (applicationLauncher.connectionState === ApplicationLauncher.Error) {
+                setError(qsTr("Application Launcher Error:"), applicationLauncher.errorString);
             }
         }
-        onReadyChanged: console.log("launcher ready: " + ready)
+    }
+
+    ApplicationLog {
+        id: applicationLog
+        logLevel: ApplicationLog.Debug
+        ready: ((mainWindow.state === "launcher") || (mainWindow.state === "launcher-selected"))
+            && logService.ready
+        logUri: logService.uri
     }
 
     ServiceDiscovery {
         id: serviceDiscovery
 
         running: true
-        filter: ServiceDiscoveryFilter {
+        filter {
             id: serviceDiscoveryFilter
             name: ""
         }
 
-        serviceLists: [
-            ServiceList {
-                services: [
-                    Service {
-                        id: configService
-                        type: "config"
-                    },
-                    Service {
-                        id: launcherService
-                        type: "launcher"
-                    },
-                    Service {
-                        id: launchercmdService
-                        type: "launchercmd"
-                    }
-                ]
-            },
-            ServiceList {
-                id: applicationServiceList
-                services: []
+        ServiceList {
+            Service {
+                id: configService
+                type: "config"
             }
-        ]
+            Service {
+                id: launcherService
+                type: "launcher"
+            }
+            Service {
+                id: launchercmdService
+                type: "launchercmd"
+            }
+            Service {
+                id: logService
+                type: "log"
+            }
+        }
+
+        ServiceList {
+            id: applicationServiceList
+            services: []
+        }
     }
 
     LocalSettings {
@@ -616,56 +676,11 @@ Rectangle {
         NameServer { }
     }
 
-    state: {
-        if (!serviceDiscovery.networkReady)
-        {
-            return "network"
-        }
-        else if (d.errorActive)
-        {
-            return "error"
-        }
-        else if (appPage.status == Loader.Ready)
-        {
-            return "app-loaded"
-        }
-        else if (applicationConfig.selectedConfig.loading
-                 || (appPage.active && (appPage.status == Loader.Loading)))
-        {
-            return "app-loading"
-        }
-        else if (d.instanceSelected)
-        {
-            if (configService.ready && !d.holdLauncher) {
-                return "config"
-            }
-            else if (d.holdLauncher || d.freshStart) {
-                return "launcher"
-            }
-            else {
-                return "launcher-selected"
-            }
-        }
-        else {
-            return "instance"
-        }
-    }
+    state: _evaluateState()
 
     states: [
         State {
-            name: "network"
-            PropertyChanges { target: networkPage; visible: true }
-            PropertyChanges { target: instancePage; visible: false }
-            PropertyChanges { target: launcherPage; visible: false }
-            PropertyChanges { target: selectedPage; visible: false }
-            PropertyChanges { target: configPage; visible: false }
-            PropertyChanges { target: appPage; visible: false }
-            PropertyChanges { target: errorPage; visible: false}
-            PropertyChanges { target: loadingPage; visible: false }
-        },
-        State {
             name: "instance"
-            PropertyChanges { target: networkPage; visible: false }
             PropertyChanges { target: instancePage; visible: true }
             PropertyChanges { target: launcherPage; visible: false }
             PropertyChanges { target: selectedPage; visible: false }
@@ -676,7 +691,6 @@ Rectangle {
         },
         State {
             name: "launcher"
-            PropertyChanges { target: networkPage; visible: false }
             PropertyChanges { target: instancePage; visible: false }
             PropertyChanges { target: launcherPage; visible: true }
             PropertyChanges { target: selectedPage; visible: false }
@@ -687,7 +701,6 @@ Rectangle {
         },
         State {
             name: "launcher-selected"
-            PropertyChanges { target: networkPage; visible: false }
             PropertyChanges { target: instancePage; visible: false }
             PropertyChanges { target: launcherPage; visible: false }
             PropertyChanges { target: selectedPage; visible: true }
@@ -698,7 +711,6 @@ Rectangle {
         },
         State {
             name: "config"
-            PropertyChanges { target: networkPage; visible: false }
             PropertyChanges { target: instancePage; visible: false }
             PropertyChanges { target: launcherPage; visible: false }
             PropertyChanges { target: selectedPage; visible: false }
@@ -709,7 +721,6 @@ Rectangle {
         },
         State {
             name: "app-loading"
-            PropertyChanges { target: networkPage; visible: false }
             PropertyChanges { target: instancePage; visible: false }
             PropertyChanges { target: launcherPage; visible: false }
             PropertyChanges { target: selectedPage; visible: false }
@@ -720,7 +731,6 @@ Rectangle {
         },
         State {
             name: "app-loaded"
-            PropertyChanges { target: networkPage; visible: false }
             PropertyChanges { target: instancePage; visible: false }
             PropertyChanges { target: launcherPage; visible: false }
             PropertyChanges { target: selectedPage; visible: false }
@@ -731,7 +741,6 @@ Rectangle {
         },
         State {
             name: "error"
-            PropertyChanges { target: networkPage; visible: false }
             PropertyChanges { target: instancePage; visible: false }
             PropertyChanges { target: launcherPage; visible: false }
             PropertyChanges { target: selectedPage; visible: false }

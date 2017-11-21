@@ -30,11 +30,12 @@ ApplicationAction {
     id: root
     text: qsTr("Flood")
     shortcut: ""
-    tooltip: qsTr("Enable flood") + " [" + shortcut + "]"
+    tooltip: qsTr("Enable flood [%1]").arg(shortcut)
     onTriggered: {
-        if (status.task.taskMode !== ApplicationStatus.TaskModeManual)
-            command.setTaskMode('execute', ApplicationCommand.TaskModeManual)
-        command.setFloodEnabled(checked)
+        if (status.task.taskMode !== ApplicationStatus.TaskModeManual) {
+            command.setTaskMode('execute', ApplicationCommand.TaskModeManual);
+        }
+        command.setFloodEnabled(checked);
     }
 
     checkable: true

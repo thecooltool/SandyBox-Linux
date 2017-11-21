@@ -19,14 +19,14 @@
 ** Alexander Rössler @ The Cool Tool GmbH <mail DOT aroessler AT gmail DOT com>
 **
 ****************************************************************************/
-import QtQuick 2.3
-import QtQuick.Controls 1.2
+import QtQuick 2.0
+import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.1
-import QtQuick.Controls.Styles 1.2
+import QtQuick.Controls.Styles 1.1
 
 ToolButton {
     style: ButtonStyle {
-        property bool hovered : (Qt.platform.os == "android") ? false : control.hovered
+        property bool hovered : (Qt.platform.os === "android") ? false : control.hovered
             background: Rectangle {
                 border.color: (control.pressed || control.checked || hovered) ? systemPalette.shadow : "#00000000"
                 border.width: hovered ? 2 : 1

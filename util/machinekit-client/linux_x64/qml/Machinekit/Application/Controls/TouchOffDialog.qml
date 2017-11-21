@@ -30,9 +30,10 @@ Dialog {
     property alias core: object.core
     property alias status: object.status
     property alias command: object.command
+    property alias helper: object.helper
     property int axis: 0
-    property var axisNames: ["X", "Y", "Z", "A", "B", "C", "U", "V", "W"]
-    property var _axisNames: ["x", "y", "z", "a", "b", "c", "u", "v", "w"]
+    property var axisNames: helper.ready ? helper.axisNamesUpper : ["X", "Y", "Z"]
+    property var _axisNames: helper.ready ? helper.axisNames : ["x", "y", "z"]
 
     property bool _ready: status.synced && command.connected
     property bool _done: true
@@ -44,31 +45,31 @@ Dialog {
 
     onVisibleChanged: {
         if (visible) {
-            _done = false
-            coordinateSpin.value = 0
-            coordinateSystemCombo.currentIndex = 0
+            _done = false;
+            coordinateSpin.value = 0.0;
+            coordinateSystemCombo.currentIndex = status.motion.g5xIndex - 1;
         }
     }
 
     onAccepted: {
         if (_ready && !_done) {
             if (status.task.taskMode !== ApplicationStatus.TaskModeMdi) {
-                command.setTaskMode('execute', ApplicationCommand.TaskModeMdi)
+                command.setTaskMode('execute', ApplicationCommand.TaskModeMdi);
             }
-            var axisName = _axisNames[axis]
-            var position = status.motion.position[axisName] - status.motion.g92Offset[axisName] - status.io.toolOffset[axisName]
-            var newOffset = (position - coordinateSpin.value) / status.config.axis[axis].units
-            var mdi = "G10 L2 P" + (coordinateSystemCombo.currentIndex + 1) + " " + axisNames[axis] + newOffset.toFixed(6)
-            command.executeMdi('execute', mdi)
+            var axisName = _axisNames[axis];
+            var position = status.motion.position[axisName] - status.motion.g92Offset[axisName] - status.io.toolOffset[axisName];
+            var newOffset = (position - coordinateSpin.value);
+            var mdi = "G10 L2 P" + (coordinateSystemCombo.currentIndex + 1) + " " + axisNames[axis] + newOffset.toFixed(6);
+            command.executeMdi('execute', mdi);
         }
 
-        _done = true
+        _done = true;
     }
 
     ColumnLayout {
         anchors.fill: parent
         Label {
-            text: qsTr("Enter ") + dialog.axisNames[dialog.axis] + qsTr(" coordinate relative to workpiece:")
+            text: qsTr("Enter %1 coordinate relative to workpiece:").arg(dialog.axisNames[dialog.axis])
         }
         SpinBox {
             id: coordinateSpin

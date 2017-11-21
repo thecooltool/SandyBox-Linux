@@ -26,61 +26,72 @@ import Machinekit.PathView 1.0
 Canvas3D {
     property real textSize: 14
     property color color: "cyan"
+    property real lineWidth: 2.0
     property var g5xNames: ["G54", "G55", "G56", "G57", "G58", "G59", "G59.1", "G59.2", "G59.3"]
     property int g5xIndex: 1
-    property var g5xOffset: {"x":0.12345, "y":0.234,"z":123.12,"a":324.3}
-    property var g92Offset: {"x":0.12345, "y":0.234,"z":123.12,"a":324.3}
+    property var g5xOffset: { "x": 0.12345, "y": 0.234, "z": 123.12, "a": 324.3 }
+    property var g92Offset: { "x": 0.12345, "y": 0.234, "z": 123.12, "a": 324.3 }
+    property string viewMode: "Perspective"
 
     id: programOffsets
 
     onPaint: {
-        context.prepare(this)
-        context.reset()
+        context.prepare(this);
+        context.reset();
 
-        context.color(color)
-        context.lineWidth(1.0)
-        context.beginUnion()
+        context.color(color);
+        context.lineWidth(lineWidth);
+        context.beginUnion();
+
+        var textRotated = (viewMode === "Top") || (viewMode === "RotatedTop");
 
         if ((g5xOffset.x !== 0.0) || (g5xOffset.y !== 0.0) || (g5xOffset.z !== 0.0))
         {
-            context.translate(0.0, 0.0, -textSize)
-            context.rotate(90, 1.0, 0.0, 0.0)
-            context.scale(textSize, textSize, textSize)
-            if (g5xOffset.x < 0) {
-                context.text(g5xNames[g5xIndex-1], GLView3D.AlignRight)
-            } else {
-                context.text(g5xNames[g5xIndex-1], GLView3D.AlignLeft)
+            context.scale(textSize, textSize, textSize);
+            if (!textRotated) {
+                context.rotate(90.0, 1.0, 0.0, 0.0);
             }
+            if (g5xOffset.x < 0) {
+                context.text(g5xNames[g5xIndex-1], GLView3D.AlignRight);
+            } else {
+                context.text(g5xNames[g5xIndex-1], GLView3D.AlignLeft);
+            }
+
             context.lineFromTo(0.0, 0.0, 0.0,
-                               g5xOffset.x, g5xOffset.y, g5xOffset.z)
+                               g5xOffset.x, g5xOffset.y, g5xOffset.z);
         }
 
         if ((g92Offset.x !== 0.0) || (g92Offset.y !== 0.0) || (g92Offset.z !== 0.0))
         {
-            context.translate(g5xOffset.x, g5xOffset.y, g5xOffset.z)
-            context.rotate(90, 1.0, 0.0, 0.0)
-            context.beginUnion()
-            context.scale(textSize, textSize, textSize)
-            if (g92Offset.x < 0) {
-                context.text("G92", GLView3D.AlignRight)
-            } else {
-                context.text("G92", GLView3D.AlignLeft)
+            context.translate(g5xOffset.x, g5xOffset.y, g5xOffset.z);
+
+            context.beginUnion();
+            if (!textRotated) {
+                context.rotate(90.0, 1.0, 0.0, 0.0);
             }
-            context.lineTo(g92Offset.x, g92Offset.y, g92Offset.z)
-            context.endUnion()
+            context.scale(textSize, textSize, textSize);
+            if (g92Offset.x < 0) {
+                context.text("G92", GLView3D.AlignRight);
+            } else {
+                context.text("G92", GLView3D.AlignLeft);
+            };
+
+            context.lineTo(g92Offset.x, g92Offset.y, g92Offset.z);
+            context.endUnion();
         }
 
-        context.endUnion()
+        context.endUnion();
 
-        context.update()
+        context.update();
     }
 
     Component.onCompleted: {
-        onTextSizeChanged.connect(needsUpdate)
-        onColorChanged.connect(needsUpdate)
-        onG5xNamesChanged.connect(needsUpdate)
-        onG5xIndexChanged.connect(needsUpdate)
-        onG5xOffsetChanged.connect(needsUpdate)
-        onG92OffsetChanged.connect(needsUpdate)
+        onTextSizeChanged.connect(needsUpdate);
+        onColorChanged.connect(needsUpdate);
+        onG5xNamesChanged.connect(needsUpdate);
+        onG5xIndexChanged.connect(needsUpdate);
+        onG5xOffsetChanged.connect(needsUpdate);
+        onG92OffsetChanged.connect(needsUpdate);
+        onViewModeChanged.connect(needsUpdate);
     }
 }

@@ -32,14 +32,14 @@ ApplicationAction {
     //iconName: "system-shutdown"
     iconSource: "qrc:Machinekit/Application/Controls/icons/system-shutdown"
     shortcut: "F2"
-    tooltip: qsTr("Toggle Machine power") + " [" + shortcut + "]"
+    tooltip: qsTr("Toggle Machine power [%1]").arg(shortcut)
     checkable: true
     onTriggered: {
         if (checked) {
-            command.setTaskState('execute', ApplicationCommand.TaskStateOn)
+            command.setTaskState('execute', ApplicationCommand.TaskStateOn);
         }
         else {
-            command.setTaskState('execute', ApplicationCommand.TaskStateOff)
+            command.setTaskState('execute', ApplicationCommand.TaskStateOff);
         }
     }
 

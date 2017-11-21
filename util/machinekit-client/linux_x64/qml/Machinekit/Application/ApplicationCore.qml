@@ -29,6 +29,7 @@ Item {
     property ApplicationCommand command: applicationCommand
     property ApplicationFile file: applicationFile
     property ApplicationError error: applicationError
+    property ApplicationHelper helper: applicationHelper
     property ApplicationSettings settings: uiSettings
     property MdiHistory mdiHistory: mdiHistory
     property HomeAllAxesHelper homeAllAxesHelper: homeAllAxesHelper
@@ -38,78 +39,101 @@ Item {
     id: applicationCore
 
     Component.onCompleted: {
-        status.onTaskChanged.connect(statusTaskChanged)
-        status.onConfigChanged.connect(statusConfigChanged)
-        file.onUploadFinished.connect(fileUploadFinished)
-        error.onMessageReceived.connect(errorMessageReceived)
-        file.onErrorChanged.connect(fileError)
-        status.onErrorChanged.connect(statusError)
-        command.onErrorChanged.connect(commandError)
-        error.onErrorChanged.connect(errorError)
+        file.onUploadFinished.connect(_fileUploadFinished);
+        error.onMessageReceived.connect(_errorMessageReceived);
+        file.onErrorChanged.connect(_fileServiceError);
+        status.onErrorStringChanged.connect(_statusServiceError);
+        command.onErrorStringChanged.connect(_commandServiceError);
+        error.onErrorStringChanged.connect(_errorServiceError);
     }
 
-    function statusTaskChanged() {
-        checkFile()
-    }
+    QtObject {
+        id: d
+        property bool ignoreNextFileChange: false // helper to prevent downloading file we just uploaded
+        readonly property string remoteFile: "file://" + status.task.file
+        readonly property string remotePath: "file://" + status.config.remotePath
 
-    function statusConfigChanged() {
-        applicationFile.remotePath = "file://" + status.config.remotePath
-        checkFile()
-    }
-
-    function checkFile() {
-        var remoteFile = "file://" + status.task.file
-        var remotePath = "file://" + status.config.remotePath
-        if ((remotePath !== "file://")
-                && (remoteFile !== "file://")
-                && (remoteFile.indexOf(remotePath) === 0)
-                && (file.remoteFilePath !== remoteFile))
-        {
-            file.remoteFilePath = remoteFile
-            file.startDownload()
+        onRemoteFileChanged: _checkRemoteFile()
+        onRemotePathChanged: {
+            applicationFile.remotePath = remotePath; // make this is set before calling the next function
+            _checkRemoteFile();
         }
     }
 
-    function fileUploadFinished() {
-        if (status.task.taskMode !== ApplicationStatus.TaskModeAuto)
-            command.setTaskMode('execute', ApplicationCommand.TaskModeAuto)
+    function ignoreNextFileChange() {
+        d.ignoreNextFileChange = true;
+    }
+
+    function _checkRemoteFile() {
+        if (file.remoteFilePath === d.remoteFile) {
+            return; // file did not change
+        }
+
+        if (d.remotePath === "file://") {
+            return; // remote path is invalid
+        }
+
+        if (d.remoteFile === "file://") {
+            file.remoteFilePath = d.remoteFile; // unload program
+        }
+        else if (d.remoteFile.indexOf(d.remotePath) === 0) {
+            file.remoteFilePath = d.remoteFile;
+            if (!d.ignoreNextFileChange) {
+                file.startDownload(); // only start download when program is open
+            }
+            else {
+                d.ignoreNextFileChange = false;
+            }
+        }
+        else {
+            return; // remoteFilePaths stays unchanged (subprogram)
+        }
+    }
+
+    function _fileUploadFinished() {
+        if (status.task.taskMode !== ApplicationStatus.TaskModeAuto) {
+            command.setTaskMode('execute', ApplicationCommand.TaskModeAuto);
+        }
         if (status.task.file !== "") {
-            command.resetProgram('execute')
+            command.resetProgram('execute');
         }
-        var fileName = file.localFilePath.split('/').reverse()[0]
-        var newPath = file.remotePath + '/' + fileName
-        file.remoteFilePath = newPath
-        command.openProgram('execute', newPath)
+        ignoreNextFileChange()
+        command.resetProgram('execute');
+        command.openProgram('execute', file.remoteFilePath);
     }
 
-    function errorMessageReceived(type, text) {
-        if (notifications != null) {
-            notifications.addNotification(type, text)
-        }
+    function _localFileChanged() {
+        file.startUpload();
     }
 
-    function fileError() {
-        if (file.error != ApplicationFile.NoError) {
-            console.log("file error: " + file.errorString)
-            file.clearError()  // ignore errors from FTP
+    function _errorMessageReceived(type, text) {
+        if (notifications !== null) {
+            notifications.addNotification(type, text);
         }
     }
 
-    function statusError() {
-        if (status.error != ApplicationStatus.NoError) {
-            console.log("status error: " + status.errorString)
+    function _fileServiceError() {
+        if (file.error !== ApplicationFile.NoError) {
+            console.warn("file service error: " + file.errorString);
+            file.clearError();  // ignore errors from FTP
         }
     }
 
-    function commandError() {
-        if (command.error != ApplicationCommand.NoError) {
-            console.log("command error: " + command.errorString)
+    function _statusServiceError(note) {
+        if (note !== "") {
+            console.warn("status service error: " + note);
         }
     }
 
-    function errorError() {
-        if (error.error != ApplicationError.NoError) {
-            console.log("error error: " + error.errorString)
+    function _commandServiceError(note) {
+        if (note !== "") {
+            console.warn("command service error: " + note);
+        }
+    }
+
+    function _errorServiceError(note) {
+        if (note !== "") {
+            console.warn("error service error: " + note);
         }
     }
 
@@ -137,25 +161,53 @@ Item {
     ApplicationStatus {
         id: applicationStatus
         statusUri: statusService.uri
-        ready: (statusService.ready || connected)
+        ready: (statusService.ready || statusSyncedQueue.output)
+    }
+
+    QueuedConnection {
+        id: statusSyncedQueue
+        input: applicationStatus.synced
     }
 
     ApplicationCommand {
         id: applicationCommand
         commandUri: commandService.uri
-        ready: (commandService.ready || connected)
+        ready: (commandService.ready || commandConnectedQueue.output)
+    }
+
+    QueuedConnection {
+        id: commandConnectedQueue
+        input: applicationCommand.connected
     }
 
     ApplicationError {
         id: applicationError
         errorUri: errorService.uri
-        ready: (errorService.ready || connected)
+        ready: (errorService.ready || errorConnectedQueue.output)
+    }
+
+    QueuedConnection {
+        id: errorConnectedQueue
+        input: applicationError.connected
     }
 
     ApplicationFile {
         id: applicationFile
         uri: fileService.uri
         ready: fileService.ready
+    }
+
+    FileWatcher {
+        id: fileWatcher
+        fileUrl: applicationFile.localFilePath
+        enabled: applicationFile.transferState === ApplicationFile.NoTransfer
+        recursive: false
+        onFileChanged: _localFileChanged()
+    }
+
+    ApplicationHelper {
+        id: applicationHelper
+        status: applicationStatus
     }
 
     ApplicationSettings {

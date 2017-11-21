@@ -16,28 +16,6 @@
 ** Lesser General Public License for more details.
 **
 ** Contributors:
-** Alexander Rössler @ The Cool Tool GmbH <mail DOT aroessler AT gmail DOT com>
-**
-****************************************************************************/
-
-/****************************************************************************
-**
-** Copyright (C) 2014 Alexander Rössler
-** License: LGPL version 2.1
-**
-** This file is part of QtQuickVcp.
-**
-** All rights reserved. This program and the accompanying materials
-** are made available under the terms of the GNU Lesser General Public License
-** (LGPL) version 2.1 which accompanies this distribution, and is available at
-** http://www.gnu.org/licenses/lgpl-2.1.html
-**
-** This library is distributed in the hope that it will be useful,
-** but WITHOUT ANY WARRANTY; without even the implied warranty of
-** MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-** Lesser General Public License for more details.
-**
-** Contributors:
 ** Derived from QtQuickCarGauges by lemirep: https://github.com/lemirep/QtQuickCarGauges
 ** Alexander Rössler @ The Cool Tool GmbH <mail DOT aroessler AT gmail DOT com>
 **
@@ -388,10 +366,12 @@ Item
             fillGradiant.addColorStop(1, backgroundColor);
 
             context.beginPath();
-            if (fullCircle)
+            if (fullCircle) {
                 context.arc(d.center.x, d.center.y, d.radius - 0.001, 0 , 2 * Math.PI);
-            else
+            }
+            else {
                 context.arc(d.center.x, d.center.y, d.radius - 0.001, Math.PI * 0.6666 , 2.3333 * Math.PI);
+            }
             context.fillStyle = fillGradiant;
             context.shadowBlur = d.blurWidth;
             context.shadowColor = outerCirclingColor;
@@ -443,7 +423,7 @@ Item
                 context.arc(d.center.x, d.center.y, d.radius - (visualizerWidth * 0.5 + d.lineWidth*2 + d.indicatorWidth), d.endAngle - (((d.range  - (z1BorderValue - minimumValue)) / d.range) * (d.wholeAngle)), d.endAngle);
                 context.stroke();
 
-                if (minimumValue != zeroValue) {
+                if (minimumValue !== zeroValue) {
                     // DRAW Z0 ARC
                     context.beginPath();
                     context.lineWidth = visualizerWidth;

@@ -29,23 +29,24 @@ ApplicationAction {
     property string resumeShortcut: "S"
 
     property bool _ready: status.synced && command.connected
+    property bool _paused: status.synced && status.task.taskPaused
 
     id: root
-    checkable: true
-    text: checked ? qsTr("Resume") : qsTr("Pause")
+
+    text: _paused ? qsTr("Resume") : qsTr("Pause")
     iconSource: "qrc:Machinekit/Application/Controls/icons/go-pause"
-    shortcut: checked ? resumeShortcut : pauseShortcut
-    tooltip: (checked ? qsTr("Pause execution") : qsTr("Resume execution")) + " [" + shortcut + "]"
+    shortcut: _paused ? resumeShortcut : pauseShortcut
+    tooltip: (_paused ? qsTr("Resume execution [%1]") : qsTr("Pause execution [%1]")).arg(shortcut)
+    checkable: true
     onTriggered: {
-        if (status.task.taskMode !== ApplicationStatus.TaskModeAuto)
-            command.setTaskMode('execute', ApplicationCommand.TaskModeAuto)
-        if (checked) {
-            command.pauseProgram('execute');
-        } else {
+        if (_paused) {
             command.resumeProgram('execute');
+        } else {
+            command.pauseProgram('execute');
         }
     }
     enabled: _ready
              && (status.task.taskState === ApplicationStatus.TaskStateOn)
              && status.running
+    checked: _ready && _paused
 }

@@ -31,11 +31,11 @@ ApplicationAction {
     text: qsTr("Stop")
     iconSource: "qrc:Machinekit/Application/Controls/icons/go-stop"
     shortcut: "Esc"
-    tooltip: qsTr("Stop program execution") + " [" + shortcut + "]"
+    tooltip: qsTr("Stop program execution [%1]").arg(shortcut)
     onTriggered: {
-        command.abort('execute')
+        command.abort('execute');
     }
     enabled: _ready
              && (status.task.taskState === ApplicationStatus.TaskStateOn)
-             && status.running
+             && status.motion.state === ApplicationStatus.MotionExec
 }

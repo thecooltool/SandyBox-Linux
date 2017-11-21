@@ -32,22 +32,23 @@ ApplicationAction {
     id: root
     text: qsTr("Unhome")
     shortcut: "Ctrl+Shift+Home"
-    tooltip: qsTr("Unhome axis ") + axis + " [" + shortcut + "]"
+    tooltip: qsTr("Unhome axis %1 [%2]").arg(axis).arg(shortcut)
     enabled: _ready
              && (status.task.taskState === ApplicationStatus.TaskStateOn)
              && !status.running
 
     onTriggered: {
-        if (status.task.taskMode !== ApplicationStatus.TaskModeManual)
-            command.setTaskMode('execute', ApplicationCommand.TaskModeManual)
+        if (status.task.taskMode !== ApplicationStatus.TaskModeManual) {
+            command.setTaskMode('execute', ApplicationCommand.TaskModeManual);
+        }
 
         if (axis > -1) {
-            command.unhomeAxis(axis)
+            command.unhomeAxis(axis);
         }
         else {
             for (var i = 0; i < status.config.axes; ++i) {
                 if (status.motion.axis[i].homed) {
-                    command.unhomeAxis(i)
+                    command.unhomeAxis(i);
                 }
             }
         }

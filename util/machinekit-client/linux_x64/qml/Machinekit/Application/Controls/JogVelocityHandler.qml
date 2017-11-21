@@ -25,100 +25,90 @@ import Machinekit.Application 1.0
 
 ApplicationObject {
     property int axis: 0
-    readonly property string units: distanceUnits + "/" + timeUnits
-    readonly property string distanceUnits: getDistanceUnits()
-    readonly property string timeUnits: getTimeUnits()
-    readonly property double displayValue: value * _timeFactor
+    readonly property string units: proportional ? "%" : distanceUnits + "/" + timeUnits
+    readonly property string distanceUnits: helper.ready ? helper.distanceUnits : "mm"
+    readonly property string timeUnits: helper.ready ? helper.timeUnits : "min"
+    readonly property double displayValue: proportional ? value : value * __timeFactor * __distanceFactor
     property double value: 0
     property double minimumValue: 0
     property double maximumValue: 100
-    property bool enabled: _ready
+    property bool proportional: false
+    property double minimumProportion: 0.0
+    property bool enabled: __ready
     property bool synced: false
 
-    property double _timeFactor: (timeUnits == "min") ? 60 : 1
-    property bool _ready: status.synced && settings.initialized
-    property bool _remoteUpdate: false
+    readonly property double __timeFactor: helper.ready ? helper.timeFactor : 1
+    readonly property double __distanceFactor: helper.ready ? helper.distanceFactor : 1
+    readonly property bool __ready: status.synced && settings.initialized
+    property bool __remoteUpdate: false
 
     onValueChanged: {
-        if (_ready && !_remoteUpdate) {
-            settings.setValue("axis" + axis + ".jogVelocity", value)
-            synced = false
+        if (__ready && !__remoteUpdate) {
+            var velocity = value;
+            if (proportional) {
+                velocity /= 100.0;
+                velocity *= maximumValue;
+            }
+            settings.setValue("axis" + axis + ".jogVelocity", velocity);
+            synced = false;
         }
     }
 
-    on_ReadyChanged: {
-        if (_ready) {
-            _update()
-            settings.onValuesChanged.connect(_update)
-            status.onConfigChanged.connect(_update)
-            status.onMotionChanged.connect(_update)
+    on__ReadyChanged: {
+        if (__ready) {
+            _update();
+            settings.onValuesChanged.connect(_update);
+            status.onConfigChanged.connect(_update);
+            status.onMotionChanged.connect(_update);
         }
         else {
-            settings.onValuesChanged.disconnect(_update)
-            status.onConfigChanged.disconnect(_update)
-            status.onMotionChanged.disconnect(_update)
-            synced = false
+            settings.onValuesChanged.disconnect(_update);
+            status.onConfigChanged.disconnect(_update);
+            status.onMotionChanged.disconnect(_update);
+            synced = false;
         }
     }
 
     onAxisChanged: {
-        if (_ready) {
-            _update()
+        if (__ready) {
+            _update();
         }
     }
 
     Component.onDestruction: {
-        settings.onValuesChanged.disconnect(_update)
-        status.onConfigChanged.disconnect(_update)
-        status.onMotionChanged.disconnect(_update)
+        if (!settings.onValuesChanged) { // for qmlplugindump
+            return;
+        }
+        settings.onValuesChanged.disconnect(_update);
+        status.onConfigChanged.disconnect(_update);
+        status.onMotionChanged.disconnect(_update);
     }
 
     function _update() {
-        _remoteUpdate = true
-        minimumValue = status.config.minVelocity
-        var axisMaxVel = status.config.axis[axis].maxVelocity
-        var configMaxVel = status.config.maxVelocity
+        __remoteUpdate = true;
+        minimumValue = status.config.minVelocity;
+        var axisMaxVel = status.config.axis[axis].maxVelocity;
+        var configMaxVel = status.config.maxVelocity;
         if ((axisMaxVel === undefined) || (axisMaxVel === 0) || (axisMaxVel > configMaxVel)) {
-            maximumValue = configMaxVel
+            maximumValue = configMaxVel;
         } else {
-            maximumValue = axisMaxVel
+            maximumValue = axisMaxVel;
         }
-        var tmpValue = settings.value("axis" + axis + ".jogVelocity")
-        tmpValue = Math.max(Math.min(tmpValue, maximumValue), minimumValue) // clamp value
+        minimumProportion = (minimumValue / maximumValue) * 100.0;
+
+        var tmpValue = settings.value("axis" + axis + ".jogVelocity");
+        tmpValue = Math.max(Math.min(tmpValue, maximumValue), minimumValue); // clamp value
+        if (proportional) {
+            tmpValue /= maximumValue;
+            tmpValue *= 100.0;
+        }
+
         if (value !== tmpValue) {
-            value = tmpValue
+            value = tmpValue;
         }
         else {
-            synced = true
+            synced = true;
         }
-        _remoteUpdate = false
-    }
-
-    function getTimeUnits() {
-        if (_ready) {
-            switch (status.config.timeUnits) {
-            case ApplicationStatus.TimeUnitsMinute:
-                return "min"
-            case ApplicationStatus.TimeUnitsSecond:
-                return "s"
-            }
-        }
-
-        return "min"
-    }
-
-    function getDistanceUnits() {
-        if (_ready) {
-            switch (status.config.programUnits) {
-            case ApplicationStatus.CanonUnitsInches:
-                return "in"
-            case ApplicationStatus.CanonUnitsMm:
-                return "mm"
-            case ApplicationStatus.CanonUnitsCm:
-                return "cm"
-            }
-        }
-
-        return "mm"
+        __remoteUpdate = false;
     }
 }

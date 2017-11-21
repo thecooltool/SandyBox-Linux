@@ -55,13 +55,13 @@ Rectangle {
     */
     property alias name: remoteComponent.name
 
-    /*! \qmlproperty int heartbeadPeriod
+    /*! \qmlproperty int heartbeatInterval
 
-        This property holds the period time of the heartbeat timer in ms.
+        This property holds the interval time of the heartbeat timer in ms.
 
-        The default value is \c{3000}.
+        The default value is \c{2500}.
     */
-    property alias heartbeatPeriod: remoteComponent.heartbeatPeriod
+    property alias heartbeatInterval: remoteComponent.halrcmdHeartbeatInterval
 
     /*! \qmlproperty string halrcmdUri
 
@@ -126,19 +126,19 @@ Rectangle {
 
     /*! \internal */
     property var _requiredServices: {
-        var required = []
-        var newReady = true
+        var required = [];
+        var newReady = true;
         for (var i = 0; i < services.length; ++i) {
             if (services[i].required) {
-                required.push(services[i])
-                newReady = newReady && services[i].ready
-                services[i].onReadyChanged.connect(_evaluateReady)
+                required.push(services[i]);
+                newReady = newReady && services[i].ready;
+                services[i].onReadyChanged.connect(_evaluateReady);
             }
         }
 
-        _ready = newReady  // if no required service we are ready
+        _ready = newReady;  // if no required service we are ready
 
-        return required
+        return required;
     }
 
     /*! \internal */
@@ -148,29 +148,28 @@ Rectangle {
     function _evaluateReady() {
         for (var i = 0; i < _requiredServices.length; ++i) {
             if (!_requiredServices[i].ready) {
-                _ready = false
-                return
+                _ready = false;
+                return;
             }
         }
 
-        _ready = true
-        return
+        _ready = true;
+        return;
     }
 
     /*! \internal */
     function _recurseObjects(objects, name)
     {
-        var list = []
+        var list = [];
 
         if (objects !== undefined) {
-            for (var i = 0; i < objects.length; ++i)
-            {
+            for (var i = 0; i < objects.length; ++i) {
                 if (objects[i].objectName === name) {
-                    list.push(objects[i])
+                    list.push(objects[i]);
                 }
-                var nestedList = _recurseObjects(objects[i].data, name)
+                var nestedList = _recurseObjects(objects[i].data, name);
                 if (nestedList.length > 0) {
-                    list = list.concat(nestedList)
+                    list = list.concat(nestedList);
                 }
             }
         }
@@ -183,14 +182,19 @@ Rectangle {
         Disconnects the service window if connected.
       */
     signal disconnect()
+    /*! \qmlsignal disconnect
+
+        Signals that the application is beeing shutdown.
+      */
+    signal shutdown()
 
     Component.onCompleted: {
-        var list = main.services
-        var nestedList = _recurseObjects(main.data, "Service")
+        var list = main.services;
+        var nestedList = _recurseObjects(main.data, "Service");
         if (nestedList.length > 0) {
-            list = list.concat(nestedList)
+            list = list.concat(nestedList);
         }
-        main.services = list
+        main.services = list;
     }
 
     id: main
@@ -249,10 +253,15 @@ Rectangle {
 
                 CheckBox {
                     id: checkBox
-                    text: _requiredServices[index].type + qsTr(" service")
+                    text: qsTr("%1 service", "Required service").arg(_requiredServices[index].type)
                     checked: _requiredServices[index].ready
                 }
             }
+        }
+
+        MouseArea {
+            // steal the clicks from the check boxes
+            anchors.fill: serviceCheckColumn
         }
 
         Label {
@@ -265,20 +274,7 @@ Rectangle {
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
             font.pointSize: dummyText.font.pointSize * 1.1
-            text: {
-                var headerText
-
-                switch (remoteComponent.error)
-                {
-                case HalRemoteComponent.BindError: headerText = qsTr("Bind rejected error:"); break;
-                case HalRemoteComponent.PinChange: headerText = qsTr("Pin change rejected error:"); break;
-                case HalRemoteComponent.CommandError: headerText = qsTr("Command error:"); break;
-                case HalRemoteComponent.SocketError: headerText = qsTr("Socket error:"); break;
-                default: headerText = qsTr("No error")
-                }
-
-                return headerText + "\n" + remoteComponent.errorString
-            }
+            text: qsTr("HAL component error:") + "\n" + remoteComponent.errorString
         }
     }
 
@@ -300,8 +296,7 @@ Rectangle {
         name: main.name
         halrcmdUri: halrcmdService.uri
         halrcompUri: halrcompService.uri
-        heartbeatPeriod: 3000
-        ready: (halrcompService.ready && halrcmdService.ready) || (remoteComponent.state === HalRemoteComponent.Connected)
+        ready: (halrcompService.ready && halrcmdService.ready) || remoteComponent.connected
         containerItem: parent
     }
 
@@ -317,17 +312,17 @@ Rectangle {
 
     state: {
         switch (remoteComponent.connectionState) {
-        case HalRemoteComponent.Connected:
-            if (_ready)
-                return "connected"
-            else
-                return "disconnected"
+        case HalRemoteComponent.Synced:
+            if (_ready) {
+                return "connected";
+            }
+            else {
+                return "disconnected";
+            }
         case HalRemoteComponent.Error:
-                return "error"
-        case HalRemoteComponent.Timeout:
-            return "timeout"
+                return "error";
         default:
-            return "disconnected"
+            return "disconnected";
         }
     }
 

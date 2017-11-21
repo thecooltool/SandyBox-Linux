@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+if [ -z "$BASH_SOURCE" ]; then
+cd "$(dirname "$(readlink -f "$0")")"
+else
+cd "$(dirname "${BASH_SOURCE[0]}" )"
+fi
+CWD=`pwd`
+export LD_LIBRARY_PATH="$CWD"/lib
+export QML_IMPORT_PATH="$CWD"/qml
+export QML2_IMPORT_PATH="$CWD"/qml
+export QT_QPA_PLATFORM_PLUGIN_PATH="$CWD"/platforms
+export QT_PLUGIN_PATH="$CWD"/plugins
+/lib64/ld-linux-x86-64.so.2 "$CWD"/bin/machinekit-client $@
+exit $?

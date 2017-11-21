@@ -31,11 +31,12 @@ ApplicationAction {
     text: qsTr("Step")
     iconSource: "qrc:Machinekit/Application/Controls/icons/go-next"
     shortcut: "T"
-    tooltip: qsTr("Execute next line") + " [" + shortcut + "]"
+    tooltip: qsTr("Execute next line [%1]").arg(shortcut)
     onTriggered: {
-        if (status.task.taskMode !== ApplicationStatus.TaskModeAuto)
-            command.setTaskMode('execute', ApplicationCommand.TaskModeAuto)
-        command.stepProgram('execute')
+        if (status.task.taskMode !== ApplicationStatus.TaskModeAuto) {
+            command.setTaskMode('execute', ApplicationCommand.TaskModeAuto);
+        }
+        command.stepProgram('execute');
     }
     enabled: _ready
              && (status.task.taskState === ApplicationStatus.TaskStateOn)

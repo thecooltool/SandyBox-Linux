@@ -23,7 +23,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import Machinekit.Application 1.0
-import Machinekit.Application.Controls 1.0
 
 Button {
     property alias core: jogAction.core
@@ -32,35 +31,37 @@ Button {
     property alias axis: jogAction.axis
     property alias distance: jogAction.distance
     property int direction: 1
-    property double velocity: jogAction.settings.initialized ? jogAction.settings.value("axis" + axis + ".jogVelocity") : 0.0
+    property double velocity: jogAction.settings.initialized ? jogAction.settings.values["axis" + axis]["jogVelocity"] : 0.0
 
     function _toggle(onOff) {
         if (onOff) {
             if (jogAction.distance === 0) {
-                jogAction.velocity = velocity * direction
-                jogAction.trigger()
+                jogAction.velocity = velocity * direction;
+                jogAction.trigger();
             }
         }
         else if (jogAction.distance === 0) {
-            jogAction.velocity = 0
-            jogAction.trigger()
+            jogAction.velocity = 0;
+            jogAction.trigger();
         }
         else {
-            jogAction.velocity = velocity * direction
-            jogAction.trigger()
+            jogAction.velocity = velocity * direction;
+            jogAction.trigger();
         }
     }
 
-    text: (direction == 1) ? "+" : "-"
+    text: (direction === 1) ? "+" : "-"
     enabled: jogAction.enabled
 
     onPressedChanged: {
-        if (!checkable)
-            _toggle(pressed)
+        if (!checkable) {
+            _toggle(pressed);
+        }
     }
     onCheckedChanged: {
-        if (checkable)
-         _toggle(checked)
+        if (checkable) {
+         _toggle(checked);
+        }
     }
 
     JogAction {

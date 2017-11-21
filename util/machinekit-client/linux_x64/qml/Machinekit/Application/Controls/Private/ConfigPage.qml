@@ -10,7 +10,7 @@ Item {
     property bool localVisible: true
     property bool remoteVisible: true
     property string mode: "local"
-    property var configService: {"name": "Test on XYZ"}
+    property var configService: QtObject { property string name: "Test on XYZ" }
     property var applications: []
 
     property var _listModel: root.instanceSelected ? root.applications : 0
@@ -19,9 +19,9 @@ Item {
     signal goBack()
 
     function _evaluateAutoSelection() {
-        if ((autoSelectApplication == true) && (_listModel.length > 0) && configService.ready)
+        if ((autoSelectApplication === true) && (_listModel.length > 0) && configService.ready)
         {
-            applicationSelected(0)
+            applicationSelected(0);
         }
     }
 
@@ -29,6 +29,7 @@ Item {
 
     Connections {
         target: configService
+        ignoreUnknownSignals: true
         onReadyChanged: _evaluateAutoSelection()
     }
 
@@ -116,7 +117,7 @@ Item {
                 BusyIndicator {
                     anchors.centerIn: parent
                     running: true
-                    visible: (root.mode == "remote") && !applicationConfig.connected
+                    visible: (root.mode === "remote") && !applicationConfig.synced
                     height: Math.min(root.width, root.height) * 0.15
                     width: height
                 }
@@ -129,15 +130,15 @@ Item {
         anchors.fill: parent
 
         onCurrentIndexChanged: {
-            if (currentIndex == 0)
-                root.mode = "remote"
+            if (currentIndex === 0)
+                root.mode = "remote";
             else
-                root.mode = "local"
+                root.mode = "local";
         }
 
         Binding {
             target: appView; property: "currentIndex";
-            value: ((root.mode == "remote") ? 0 : 1)
+            value: ((root.mode === "remote") ? 0 : 1)
         }
 
         SlidePage {

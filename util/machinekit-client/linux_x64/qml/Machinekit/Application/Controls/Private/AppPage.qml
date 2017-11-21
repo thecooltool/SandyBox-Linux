@@ -7,30 +7,31 @@ Loader {
     property string applicationSource: ""
     property var applicationConfig: undefined
     property var serviceDiscovery: undefined
-    property string title: (active && (item != null))
+    property string title: (active && (item !== null))
                            ? ((item.title !== undefined) ? item.title : "") : ""
-    property var services: (((item != null) && (item.services !== undefined)) ? item.services : [])
-    property var toolBar: ((item != null) ? item.toolBar : null)
-    property var statusBar: ((item != null) ? item.statusBar : null)
-    property var menuBar: ((item != null) ? item.menuBar : null)
+    property var services: (((item !== null) && (item.services !== undefined)) ? item.services : [])
+    property var toolBar: (((item !== null) && (item.toolBar !== undefined)) ? item.toolBar : null)
+    property var statusBar: (((item !== null) && (item.statusBar !== undefined)) ? item.statusBar : null)
+    property var menuBar: (((item !== null) && (item.menuBar !== undefined)) ? item.menuBar : null)
 
-    signal goBack()
+    signal goBack(bool shutdown)
 
     id: applicationLoader
     width: 600
     height: 500
 
-    active: (applicationSource != "") ? true : applicationConfig.selectedConfig.loaded
-    source: (applicationSource != "") ? applicationSource : applicationConfig.selectedConfig.mainFile
+    active: ((applicationSource !== "") || (applicationConfig === undefined)) ? true : applicationConfig.selectedConfig.loaded
+    source: ((applicationSource !== "") || (applicationConfig === undefined)) ? applicationSource : applicationConfig.selectedConfig.mainFile
 
     onSourceChanged: {
-        console.log("Source changed: " + source + " " + active)
+        console.log("app source changed: " + source + " active: " + active);
     }
 
     onStatusChanged: {
         if (status === Loader.Error)
         {
-            setError(qsTr("QML Error:"), "Loading QML file failed")
+            var msg = applicationLoader.sourceComponent.errorString();
+            setError(qsTr("QML Error:"), qsTr("Loading QML file failed:\n" + msg));
         }
     }
 
@@ -38,7 +39,8 @@ Loader {
         target: applicationLoader.item
         ignoreUnknownSignals: true
         onServicesChanged: serviceDiscovery.updateServices()
-        onDisconnect: goBack()
+        onDisconnect: goBack(false)
+        onShutdown: goBack(true)
     }
 }
 

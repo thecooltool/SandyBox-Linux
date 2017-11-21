@@ -32,14 +32,14 @@ ApplicationAction {
     //iconName: "process-stop"
     iconSource: "qrc:Machinekit/Application/Controls/icons/process-stop"
     shortcut: "F1"
-    tooltip: qsTr("Toggle Emergency Stop") + " [" + shortcut + "]"
+    tooltip: qsTr("Toggle Emergency Stop [%1]").arg(shortcut)
     checkable: true
     onTriggered: {
         if (checked) {
-            command.setTaskState('execute', ApplicationCommand.TaskStateEstop)
+            command.setTaskState('execute', ApplicationCommand.TaskStateEstop);
         }
         else {
-            command.setTaskState('execute', ApplicationCommand.TaskStateEstopReset)
+            command.setTaskState('execute', ApplicationCommand.TaskStateEstopReset);
         }
     }
 

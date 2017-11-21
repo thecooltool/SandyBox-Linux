@@ -32,9 +32,9 @@ ApplicationAction {
     id: root
     text: qsTr("Touch Off")
     shortcut: "End"
-    tooltip: qsTr("Set G5x offset for active axis") + " [" + shortcut + "]"
+    tooltip: qsTr("Set G5x offset for active axis [%1]").arg(shortcut)
     onTriggered: {
-        touchOffDialog.visible = true
+        touchOffDialog.visible = true;
     }
 
     enabled: _ready

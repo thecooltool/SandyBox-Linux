@@ -2,10 +2,23 @@ MetaInfo {
 
     Type {
         name: "Machinekit.Controls.Dial"
-        icon: "images/item-icon.png"
+        icon: "images/item-icon16.png"
 
         ItemLibraryEntry {
             name: "Dial"
+            category: "Machinekit - Controls"
+            libraryIcon: "images/item-icon.png"
+            version: "1.0"
+            requiredImport: "Machinekit.Controls"
+        }
+    }
+
+    Type {
+        name: "Machinekit.Controls.Knob"
+        icon: "images/item-icon16.png"
+
+        ItemLibraryEntry {
+            name: "Knob"
             category: "Machinekit - Controls"
             libraryIcon: "images/item-icon.png"
             version: "1.0"
@@ -37,12 +50,12 @@ MetaInfo {
 
     Type {
         name: "Machinekit.Controls.RoundGauge"
-        icon: "images/progressbar16.png"
+        icon: "images/item-icon16.png"
 
         ItemLibraryEntry {
             name: "Round Gauge"
             category: "Machinekit - Controls"
-            libraryIcon: "images/progressbar.png"
+            libraryIcon: "images/item-icon.png"
             version: "1.0"
             requiredImport: "Machinekit.Controls"
         }
@@ -50,7 +63,7 @@ MetaInfo {
 
     Type {
         name: "Machinekit.Controls.ColorPicker"
-        icon: "images/item-icon.png"
+        icon: "images/item-icon16.png"
 
         ItemLibraryEntry {
             name: "Color Picker"
@@ -63,7 +76,7 @@ MetaInfo {
 
     Type {
         name: "Machinekit.Controls.Led"
-        icon: "images/item-icon.png"
+        icon: "images/item-icon16.png"
 
         ItemLibraryEntry {
             name: "Led (Round)"
@@ -86,7 +99,7 @@ MetaInfo {
 
     Type {
         name: "Machinekit.Controls.ValueChart"
-        icon: "images/item-icon.png"
+        icon: "images/item-icon16.png"
 
         ItemLibraryEntry {
             name: "Value Chart"
@@ -101,7 +114,7 @@ MetaInfo {
 
     Type {
         name: "Machinekit.Controls.LogChart"
-        icon: "images/item-icon.png"
+        icon: "images/item-icon16.png"
 
         ItemLibraryEntry {
             name: "Log Chart"
@@ -114,7 +127,7 @@ MetaInfo {
 
     Type {
         name: "Machinekit.Controls.VirtualJoystick"
-        icon: "images/item-icon.png"
+        icon: "images/item-icon16.png"
 
         ItemLibraryEntry {
             name: "Virtual Joystick"
