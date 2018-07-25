@@ -1,1 +1,9 @@
-.directory 
+# Linux
+.directory
+
+# Python
+*.pyc
+
+# QML
+*.qmlc
+
